@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Decision Tree</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #ffdce8 0%, #fff1c9 50%, #e7f4ff 100%);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 680px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+    }
+
+    .title {
+      margin: 0 0 12px;
+      font-size: 2rem;
+      line-height: 1.2;
+      color: #2f2a3a;
+    }
+
+    .message {
+      margin: 0 0 24px;
+      font-size: 1.08rem;
+      line-height: 1.7;
+      color: #5b5566;
+      white-space: pre-line;
+    }
+
+    .button-group {
+      display: grid;
+      gap: 12px;
+    }
+
+    .choice-btn {
+      width: 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 15px 18px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #ffffff;
+      background: linear-gradient(135deg, #ff7fab, #ff9f68);
+      box-shadow: 0 10px 22px rgba(255, 127, 171, 0.28);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+    }
+
+    .choice-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(255, 127, 171, 0.34);
+    }
+
+    .choice-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .choice-btn:disabled {
+      cursor: not-allowed;
+      background: #d9d9df;
+      color: #7b7b84;
+      box-shadow: none;
+      opacity: 0.95;
+    }
+
+    .subtitle {
+      margin-top: 18px;
+      font-size: 0.92rem;
+      color: #8a8396;
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 22px;
+        border-radius: 20px;
+      }
+
+      .title {
+        font-size: 1.6rem;
+      }
+
+      .message {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 class="title" id="title"></h1>
+    <p class="message" id="message"></p>
+    <div class="button-group" id="buttons"></div>
+    <div class="subtitle">Tap an option to continue ✨</div>
+  </div>
+
+  <script>
+    const tree = {
+      "1.1": {
+        title: "HEY YOU READING THIS",
+        message: "Hello!!",
+        options: [
+          { text: "Hiii", next: "1.2" },
+          { text: "BYE", next: "1.3" }
+        ]
+      },
+      "1.2": {
+        title: "Caution",
+        message: "If you are feeling fine, tap OK",
+        options: [
+          { text: "OK", next: "1.4" },
+          { text: "Not ok...", disabled: true }
+        ]
+      },
+      "1.3": {
+        title: "EHH WALAO ure no fun",
+        message: "",
+        options: [
+          { text: "Blekk", next: "1.1" }
+        ]
+      },
+      "1.4": {
+        title: "Real Caution",
+        message: "Are you really really OK",
+        options: [
+          { text: "OK!!", next: "1.5" },
+          { text: "NOT OK LIAO", next: "1.3" }
+        ]
+      },
+      "1.5": {
+        title: "REAL CAUTION",
+        message: "REALLY REALLY OKAY?",
+        options: [
+          { text: "OK!!!", next: "2.1" },
+          { text: "WTF LA NO OK ALR", next: "1.3" }
+        ]
+      },
+      "2.1": {
+        title: "How are you feeling at the moment?",
+        message: "",
+        options: [
+          { text: "I am Happy", next: "2.2" },
+          { text: "I am Sad", next: "2.3" },
+          { text: "I am Tired", next: "2.3" },
+          { text: "I don't know", next: "2.5" }
+        ]
+      },
+      "2.2": {
+        title: "Yay! That makes me happi too 😄",
+        message: "",
+        options: [
+          { text: "Yayy", next: "2.6" },
+          { text: "Nayy", next: "2.4" },
+          { text: "I don't care >:(", next: "2.5" }
+        ]
+      },
+      "2.3": {
+        title: "I hope you feel better soonnn 🥺",
+        message: "Tele me for a mood reset :>",
+        options: [
+          { text: "Need food?", next: "2.6" },
+          { text: "Try Again!", next: "2.1" }
+        ]
+      },
+      "2.4": {
+        title: "Oww walaooo :c",
+        message: "",
+        options: [
+          { text: "Try Again!", next: "2.2" }
+        ]
+      },
+      "2.5": {
+        title: "Hmmm, sooo are you rly okay? SKEMM",
+        message: "",
+        options: [
+          { text: "Try Again!", next: "2.1" }
+        ]
+      },
+      "2.6": {
+        title: "Do you like salmon sashimi? HEHE",
+        message: "",
+        options: [
+          { text: "YES", next: "2.8" },
+          { text: "NEVERR >:(", next: "2.7" }
+        ]
+      },
+      "2.7": {
+        title: "Too bad!! HAHAHAH I'll find another place",
+        message: "",
+        options: [
+          { text: "Try Again!", next: "1.1" }
+        ]
+      },
+      "2.8": {
+        title: "Awesomeee!!",
+        message: "Pick between Monday and Thursday!",
+        options: [
+          { text: "Monday", next: "3.1" },
+          { text: "Thursday", next: "3.2" }
+        ]
+      },
+      "3.1": {
+        title: "Monday's Date",
+        message: "",
+        options: [
+          { text: "Lunch!", next: "4.1" },
+          { text: "Dinner!", next: "4.2" },
+          { text: "Re-pick day", next: "2.8" }
+        ]
+      },
+      "3.2": {
+        title: "Thursday's Date",
+        message: "",
+        options: [
+          { text: "Lunch!", next: "4.3" },
+          { text: "Dinner!", next: "4.4" },
+          { text: "Re-pick day", next: "2.8" }
+        ]
+      },
+      "4.1": {
+        title: "Yayyy Monday lunch",
+        message: "",
+        options: [
+          { text: "Marina Oneee", next: "5.1", selection: { place: "Marina Oneee", day: "Monday", meal: "Lunch" } },
+          { text: "Odeon Towers", next: "5.1", selection: { place: "Odeon Towers", day: "Monday", meal: "Lunch" } }
+        ]
+      },
+      "4.2": {
+        title: "Yayyy Monday dinner!!",
+        message: "",
+        options: [
+          { text: "Marina Oneee", next: "5.1", selection: { place: "Marina Oneee", day: "Monday", meal: "Dinner" } },
+          { text: "Odeon Towers", next: "5.1", selection: { place: "Odeon Towers", day: "Monday", meal: "Dinner" } }
+        ]
+      },
+      "4.3": {
+        title: "Yayyy Thursday lunch!!",
+        message: "",
+        options: [
+          { text: "Odeon Towers", next: "5.1", selection: { place: "Odeon Towers", day: "Thursday", meal: "Lunch" } },
+          { text: "Re-pick day", next: "2.8" }
+        ]
+      },
+      "4.4": {
+        title: "Yayyy Thursday dinner!!",
+        message: "",
+        options: [
+          { text: "Marina Oneee", next: "5.1", selection: { place: "Marina Oneee", day: "Thursday", meal: "Dinner" } },
+          { text: "Odeon Towers", next: "5.1", selection: { place: "Odeon Towers", day: "Thursday", meal: "Dinner" } }
+        ]
+      },
+      "5.1": {
+        title: "Woohoo Salmon!!!",
+        dynamicMessage: () => {
+          if (!userPick.place) {
+            return "Aite let's meet at your chosen place!";
+          }
+          return `Aite let's meet at ${userPick.place} for ${userPick.meal} on ${userPick.day}!`;
+        },
+        options: [
+          { text: "Ok", next: "5.2" }
+        ]
+      },
+      "5.2": {
+        title: "oki hope you had fun HAHHAH",
+        message: "Tele me which date you're okay with!",
+        options: [
+          { text: "Finish", next: "1.1", resetPick: true }
+        ]
+      }
+    };
+
+    let currentNode = "1.1";
+    let userPick = {
+      day: "",
+      meal: "",
+      place: ""
+    };
+
+    const titleEl = document.getElementById("title");
+    const messageEl = document.getElementById("message");
+    const buttonsEl = document.getElementById("buttons");
+
+    function renderNode(nodeKey) {
+      const node = tree[nodeKey];
+      currentNode = nodeKey;
+
+      titleEl.textContent = node.title || "";
+      messageEl.textContent = node.dynamicMessage ? node.dynamicMessage() : (node.message || "");
+      buttonsEl.innerHTML = "";
+
+      node.options.forEach(option => {
+        const button = document.createElement("button");
+        button.className = "choice-btn";
+        button.textContent = option.text;
+
+        if (option.disabled) {
+          button.disabled = true;
+        } else {
+          button.addEventListener("click", () => {
+            if (option.selection) {
+              userPick = { ...userPick, ...option.selection };
+            }
+
+            if (option.resetPick) {
+              userPick = { day: "", meal: "", place: "" };
+            }
+
+            renderNode(option.next);
+          });
+        }
+
+        buttonsEl.appendChild(button);
+      });
+    }
+
+    renderNode(currentNode);
+  </script>
+</body>
+</html>
