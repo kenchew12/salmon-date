@@ -286,7 +286,7 @@
       },
       "5.2": {
         title: "oki hope you had fun HAHHAH",
-        message: "Tele me which date you're okay with!",
+        message: "Tele me which dare you're okay with!",
         options: [
           { text: "Finish", next: "1.1", resetPick: true }
         ]
@@ -294,6 +294,8 @@
     };
 
     let currentNode = "1.1";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmigcSgka-NexPdaTVAF-T0tU9sDdYCeakhVLV1gEj22E0dEW6A0pi4G7N96RuXiOQ/exec";
+
     let userPick = {
       day: "",
       meal: "",
@@ -303,6 +305,19 @@
     const titleEl = document.getElementById("title");
     const messageEl = document.getElementById("message");
     const buttonsEl = document.getElementById("buttons");
+
+    function sendClickData(data) {
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      }).catch(error => {
+        console.log("Could not save response:", error);
+      });
+    }
 
     function renderNode(nodeKey) {
       const node = tree[nodeKey];
@@ -321,6 +336,21 @@
           button.disabled = true;
         } else {
           button.addEventListener("click", () => {
+            const updatedPick = option.selection
+              ? { ...userPick, ...option.selection }
+              : userPick;
+
+            sendClickData({
+              currentNode: currentNode,
+              pageTitle: node.title || "",
+              choiceClicked: option.text,
+              nextNode: option.next || "",
+              day: updatedPick.day || "",
+              meal: updatedPick.meal || "",
+              place: updatedPick.place || "",
+              timestamp: new Date().toISOString()
+            });
+
             if (option.selection) {
               userPick = { ...userPick, ...option.selection };
             }
